@@ -46,8 +46,8 @@ export default function Home() {
           </p>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-white font-semibold mb-2">Accurate Closing Costs</h3>
-              <p>We use local data to estimate title and escrow fees specific to your zip code, ensuring your <strong>Home Seller Tools</strong> are precise.</p>
+              <h3 className="text-white font-semibold mb-2">Customizable Closing Costs</h3>
+              <p>This calculator uses national averages for quick estimates. Upgrade to <strong>Advanced Mode</strong> to customize specific title fees, taxes, and commissions for the most accurate results.</p>
             </div>
             <div>
               <h3 className="text-white font-semibold mb-2">Commissions & Credits</h3>

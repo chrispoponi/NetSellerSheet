@@ -99,29 +99,24 @@ export const generateExcelTool = async (inputs: CalculatorInputs, results: Calcu
     addSectionHeader(currentRow, 'ADJUSTMENTS');
     currentRow++;
     addInputRow(currentRow++, 'Repair Credits ($)', inputs.repairCosts);
-    addInputRow(currentRow++, 'Other Concessions ($)', inputs.customCredits);
+    addInputRow(currentRow++, 'Home Warranty / Misc ($)', inputs.miscFees);
     addInputRow(currentRow++, 'Prorated Prop Tax Credit ($)', results.breakdown.taxes);
+    // Other Concessions removed from UI, keeping hidden or removing? 
+    // Let's remove 'Other Concessions' if it's not in UI to match perfectly, OR keep it as a bonus for Excel users. 
+    // UI has 'Repair Credits' only. Let's keep it simple.
+    // addInputRow(currentRow++, 'Other Concessions ($)', inputs.customCredits); 
 
     // --- SECTION: RESULTS (Locked Formulas) ---
-    // Instead of hard values, we put FORMULAS here so the sheet works offline!
-
-    // We need to map Excel Cells to our rows. 
-    // Sale Price is C7. 
-    // Mortgage is C8.
-    // Comm Rate is C11. 
-    // Closing Rate is C12.
-    // Title is C13.
-    // Transfer is C14.
-    // Repairs is C17.
-    // Concessions is C18.
-    // Taxes is C19.
-
-    const resultStartRow = 7;
-    const resCol = 'E';
-    const labelCol = 'F'; // Wait, let's put Results on right side
-
-    // Gross Equity Formula: Sale Price - Mortgage
-    // =C7-C8
+    // Mapping:
+    // Sale Price: C7
+    // Mortgage: C8
+    // Comm Rate: C11
+    // Closing Rate: C12
+    // Title: C13
+    // Transfer Tax: C14
+    // Repairs: C17
+    // Misc/Warranty: C18 <-- NEW
+    // Pro Taxes: C19
 
     // Header for Results
     sheet.mergeCells(`E6:F6`);
@@ -150,54 +145,73 @@ export const generateExcelTool = async (inputs: CalculatorInputs, results: Calcu
     let rRow = 7;
     addResultRow(rRow++, 'Gross Sale Price', 'C7');
     addResultRow(rRow++, '(-) Mortgage Payoff', 'C8');
-    rRow++; // Spacer to match inputs
+    rRow++; // Spacer
 
     // Commission: SalePrice * Rate
-    addResultRow(rRow++, '(-) Total Commission', 'C7*C11');
+    addResultRow(rRow++, '(-) Total Commission', 'C7*(C11)');
 
     // Closing Costs: SalePrice * Rate
-    addResultRow(rRow++, '(-) Closing Costs', 'C7*C12');
+    addResultRow(rRow++, '(-) Closing Costs', 'C7*(C12)');
 
-    // Title + Transfer
+    // Fixed Fees
     addResultRow(rRow++, '(-) Title & Escrow', 'C13');
     addResultRow(rRow++, '(-) Transfer Tax', 'C14');
     rRow++;
 
     // Adjustments
     addResultRow(rRow++, '(-) Repair Credits', 'C17');
-    addResultRow(rRow++, '(-) Concessions', 'C18');
-    addResultRow(rRow++, '(-) Prorated Tax Credit', 'C19');
+    addResultRow(rRow++, '(-) Warranty / Misc', 'C18');
+    addResultRow(rRow++, '(-) Prorated Tax', 'C19');
 
     // TOTAL NET FORMULA
-    // SalePrice - Mortgage - Comm - Closing - Title - Transfer - Repairs - Concessions - Taxes
     // C7 - C8 - (C7*C11) - (C7*C12) - C13 - C14 - C17 - C18 - C19
     const netFormula = 'C7-C8-(C7*C11)-(C7*C12)-C13-C14-C17-C18-C19';
 
     // Add big box at bottom
-    sheet.mergeCells(`E21:F22`); // Big merge
-    // Actually let's use our helper to keep it simple first
-    rRow += 2; // Move down
-    // addResultRow(rRow, 'ESTIMATED NET PROCEEDS', netFormula, true); 
+    rRow += 2;
 
-    // Manual styling for the big result
-    sheet.mergeCells(`E${rRow}:F${rRow + 1}`);
-    const finalLabel = sheet.getCell(`E${rRow}`); // Top left of merge? No, merge usage differs.
-    // ExcelJS merge logic: value goes in top-left master cell.
+    // Net Proceeds Cell
+    const netRow = rRow;
+    sheet.getCell(`E${netRow}`).value = "NET PROCEEDS";
+    sheet.getCell(`E${netRow}`).style = { font: { name: 'Arial', size: 12, bold: true, color: { argb: 'FF166534' } }, alignment: { vertical: 'middle', horizontal: 'center' } };
 
-    // Let's split label and value for side-by-side
-    // E22 = Label, F22 = Value
-    sheet.getCell(`E${rRow}`).value = "NET PROCEEDS";
-    sheet.getCell(`E${rRow}`).style = { font: { name: 'Arial', size: 12, bold: true, color: { argb: 'FF166534' } }, alignment: { vertical: 'middle', horizontal: 'center' } };
+    sheet.getCell(`F${netRow}`).value = { formula: netFormula };
+    sheet.getCell(`F${netRow}`).numFmt = '$#,##0';
+    sheet.getCell(`F${netRow}`).style = { font: { name: 'Arial', size: 18, bold: true, color: { argb: 'FF166534' } }, alignment: { vertical: 'middle', horizontal: 'right' }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } } };
+    sheet.getRow(netRow).height = 40;
 
-    sheet.getCell(`F${rRow}`).value = { formula: netFormula };
+    // --- SCENARIOS (Matches UI) ---
+    rRow += 2;
+    sheet.mergeCells(`E${rRow}:F${rRow}`);
+    const scenHeader = sheet.getCell(`E${rRow}`);
+    scenHeader.value = "SCENARIO PROJECTIONS";
+    scenHeader.style = { font: { name: 'Arial', size: 10, bold: true, color: { argb: 'FF94A3B8' } }, alignment: { horizontal: 'center' } };
+
+    rRow++;
+    // Best Case (+5%) | Expected | Conservative (-5%)
+    // Row 1: Labels
+    // Row 2: Values formula
+
+    // We only have 2 columns (E, F). Let's use E for labels, F for values?
+    // Or stack them.
+    // Let's do a simple stacked table.
+
+    // Best Case
+    sheet.getCell(`E${rRow}`).value = "Best Case (+5%)";
+    sheet.getCell(`E${rRow}`).style = { font: { color: { argb: 'FF10B981' } } };
+    sheet.getCell(`F${rRow}`).value = { formula: `F${netRow}*1.05` };
     sheet.getCell(`F${rRow}`).numFmt = '$#,##0';
-    sheet.getCell(`F${rRow}`).style = { font: { name: 'Arial', size: 18, bold: true, color: { argb: 'FF166534' } }, alignment: { vertical: 'middle', horizontal: 'right' }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } } };
+    sheet.getCell(`F${rRow}`).style = { font: { bold: true } };
+    rRow++;
 
-    sheet.getRow(rRow).height = 40;
+    // Conservative
+    sheet.getCell(`E${rRow}`).value = "Conservative (-5%)";
+    sheet.getCell(`E${rRow}`).style = { font: { color: { argb: 'FFEF4444' } } };
+    sheet.getCell(`F${rRow}`).value = { formula: `F${netRow}*0.95` };
+    sheet.getCell(`F${rRow}`).numFmt = '$#,##0';
+    sheet.getCell(`F${rRow}`).style = { font: { bold: true } };
 
     // --- PROTECT THE SHEET ---
-    // This password is 'harvest' (example), but it's binary hashed in Excel. 
-    // We just set a password string.
     await sheet.protect('harvest', {
         selectLockedCells: true,
         selectUnlockedCells: true,

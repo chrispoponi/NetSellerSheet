@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Calculator, Check, Lock, ChevronDown, Mail, DollarSign, GripVertical, Download, Link as LinkIcon, AlertCircle, User } from "lucide-react";
+import { ArrowRight, Calculator, Check, DollarSign, Download, GripVertical, Lock, Mail, Users, MapPin, X, User } from "lucide-react";
 import { PremiumInput } from "../ui/PremiumInput";
 import { PremiumButton } from "../ui/PremiumButton";
 import { cn, formatCurrency, parseCurrency } from "@/lib/utils";
@@ -34,11 +34,13 @@ function CalculatorContent() {
     const [results, setResults] = useState<CalculatorResults | null>(null);
     const [sheetId, setSheetId] = useState<string | null>(null); // Track ID for updates
 
-    // Payment / Upgrade State
     const [showRefineModal, setShowRefineModal] = useState(false);
     const [showRecoveryModal, setShowRecoveryModal] = useState(false); // New Recovery Modal
     const [isPaid, setIsPaid] = useState(false); // Tracks standard unlock ($4.99)
     const [isPro, setIsPro] = useState(false); // Tracks Pro Bundle ($9.99)
+
+    // Derived State
+    const isAdvancedMode = isPaid || isPro;
 
     // Email Capture State
     const [email, setEmail] = useState("");
@@ -317,7 +319,7 @@ function CalculatorContent() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (isPaid) setMode('advanced');
+                                        if (isAdvancedMode) setMode('advanced');
                                         else setShowRefineModal(true);
                                     }}
                                     className={cn(
@@ -325,158 +327,226 @@ function CalculatorContent() {
                                         mode === 'advanced' ? "bg-emerald-900/30 text-emerald-400 border border-emerald-900/50" : "text-slate-400 hover:text-slate-200"
                                     )}
                                 >
-                                    {!isPaid && <Lock size={12} />} Advanced Mode
+                                    {!isAdvancedMode && <Lock size={12} />} Advanced Mode
                                 </button>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* LEFT: Breakdown */}
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                            {/* LEFT: Breakdown (Narrower - 2 cols) */}
                             <div className="lg:col-span-2 space-y-6">
-                                {/* Primary Card */}
+                                {/* Primary Card - Jazzed Up */}
                                 <motion.div
                                     initial={{ scale: 0.95, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
-                                    className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 relative overflow-hidden"
+                                    className="p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-white/10 shadow-2xl shadow-emerald-500/10 relative overflow-hidden"
                                 >
-                                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                                        <DollarSign size={200} />
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 mix-blend-overlay">
+                                        <DollarSign size={180} className="text-emerald-500" />
                                     </div>
+                                    <div className="absolute -left-20 -top-20 w-60 h-60 bg-emerald-500/20 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
 
-                                    <h3 className="text-slate-400 font-medium mb-2">Estimated Net Proceeds</h3>
-                                    <div className="text-5xl md:text-6xl font-bold text-white tracking-tight mb-4">
+                                    <h3 className="text-slate-400 font-medium mb-2 text-sm uppercase tracking-wider">Estimated Net Proceeds</h3>
+                                    <div className="text-4xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 tracking-tight mb-4 filter drop-shadow-lg">
                                         {formatCurrency(results.netProceeds)}
                                     </div>
-                                    <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium bg-emerald-950/30 w-fit px-3 py-1 rounded-full border border-emerald-900/50">
-                                        <Check size={14} /> Based on {formatCurrency(inputs.salePrice)} sale
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-bold border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                                        <Check size={12} strokeWidth={3} /> Based on {formatCurrency(inputs.salePrice)} sale
                                     </div>
                                 </motion.div>
 
-                                {/* Cost Breakdown */}
-                                <div className="bg-slate-900/30 rounded-3xl border border-slate-800/50 p-6 space-y-4">
-                                    <h4 className="text-lg font-semibold text-white mb-4">Closing Cost Breakdown</h4>
+                                {/* Detailed Breakdown Table (Compact) */}
+                                <div className="bg-slate-950/40 rounded-2xl p-6 border border-white/5 space-y-4 backdrop-blur-sm">
+                                    <h4 className="font-semibold text-slate-200 mb-2 flex items-center gap-2">
+                                        Closing Cost Breakdown
+                                        <div className="h-px bg-slate-800 flex-1 ml-2"></div>
+                                    </h4>
 
-                                    <ResultRow
-                                        label="Realtor Commissions (Est. 5%)"
-                                        value={results.breakdown.commission}
-                                        isNegative
-                                    />
-                                    <ResultRow
-                                        label="Closing Costs (~1.5%)"
-                                        value={results.breakdown.closingCosts}
-                                        isNegative
-                                    />
-                                    <ResultRow
-                                        label="Title & Escrow Fees"
-                                        value={results.breakdown.titleEscrow}
-                                        isNegative
-                                    />
-                                    {results.breakdown.taxes > 0 && (
-                                        <ResultRow
-                                            label="Prorated Taxes"
-                                            value={results.breakdown.taxes}
-                                            isNegative
-                                        />
-                                    )}
-                                    {inputs.mortgageBalance > 0 && (
-                                        <div className="pt-4 mt-4 border-t border-slate-800 font-medium opacity-75">
-                                            <ResultRow
-                                                label="Mortgage Payoff"
-                                                value={results.breakdown.mortgagePayoff}
-                                                isNegative
-                                            />
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex justify-between items-center text-slate-300">
+                                            <span>Realtor Commissions (Est. {inputs.commissionRate}%)</span>
+                                            <span className="text-red-400 font-medium font-mono">-{formatCurrency(results.breakdown.commission)}</span>
                                         </div>
-                                    )}
+                                        <div className="flex justify-between items-center text-slate-400">
+                                            <span>Closing Costs (~{inputs.closingCostsRate}%)</span>
+                                            <span className="text-red-400/80 font-mono">-{formatCurrency(results.breakdown.closingCosts)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-slate-400">
+                                            <span>Title & Escrow Fees</span>
+                                            <span className="text-red-400/80 font-mono">-{formatCurrency(results.breakdown.titleEscrow)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-slate-400">
+                                            <span>Prorated Taxes</span>
+                                            <span className="text-red-400/80 font-mono">-{formatCurrency(results.breakdown.taxes)}</span>
+                                        </div>
 
+                                        {(results.breakdown.repairs > 0 || results.breakdown.credits > 0) && (
+                                            <div className="flex justify-between items-center text-slate-400">
+                                                <span>Repairs & Credits</span>
+                                                <span className="text-red-400/80 font-mono">-{formatCurrency(results.breakdown.repairs + results.breakdown.credits)}</span>
+                                            </div>
+                                        )}
+
+                                        <div className="h-px bg-slate-800 my-2" />
+
+                                        <div className="flex justify-between items-center text-slate-300">
+                                            <span>Mortgage Payoff</span>
+                                            <span className="text-red-400/80 font-mono">-{formatCurrency(results.breakdown.mortgagePayoff)}</span>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* Soft CTA or Upsell */}
-                                {mode === 'basic' && (
-                                    <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-slate-700/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                        <div>
-                                            <h4 className="text-white font-semibold">Want a precision number?</h4>
-                                            <p className="text-slate-400 text-sm mt-1">Unlock Advanced Mode to customize commissions, repairs, and specific fees.</p>
-                                        </div>
-                                        <PremiumButton
-                                            variant="outline"
-                                            onClick={() => setShowRefineModal(true)}
-                                            className="whitespace-nowrap"
-                                        >
-                                            Unlock Advanced ($4.99)
-                                        </PremiumButton>
-                                    </div>
-                                )}
-
-                                {/* PRIMARY CTA - Refine My Net Sheet */}
-                                {!isPaid && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="sticky bottom-4 md:static z-30"
-                                    >
-                                        <PremiumButton
-                                            size="xl"
-                                            className="w-full shadow-2xl shadow-emerald-500/20 border-t border-emerald-400/30"
-                                            onClick={() => setShowRefineModal(true)}
-                                        >
-                                            Refine My Net Sheet <ArrowRight className="ml-2" />
-                                        </PremiumButton>
-                                        <p className="text-center text-xs text-slate-500 mt-2 md:hidden">
-                                            Customize fees, repairs, and download PDF
-                                        </p>
-                                    </motion.div>
+                                {/* Refine CTA (Mobile visible, Desktop hidden if viewing Fine Tune) */}
+                                {!isAdvancedMode && (
+                                    <div className="hidden"></div>
                                 )}
                             </div>
 
-                            {/* RIGHT: Controls (If Advanced) or Upsell (If basic) */}
-                            <div className="lg:col-span-1 space-y-6">
+                            {/* RIGHT: Controls (Wider - 3 cols) */}
+                            <div className="lg:col-span-3 space-y-6">
                                 {mode === 'advanced' ? (
                                     <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-500">
-                                        <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-6">
-                                            <h3 className="font-semibold text-white flex items-center gap-2">
-                                                <GripVertical size={16} className="text-emerald-500" />
-                                                Fine Tune
-                                            </h3>
+                                        <div className="rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden ring-1 ring-white/5 relative">
+                                            {/* Subtle top glow */}
+                                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-500/20"></div>
 
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <div className="flex justify-between text-sm mb-2">
-                                                        <span className="text-slate-400">Commission ({inputs.commissionRate}%)</span>
+                                            <div className="p-8 space-y-8">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                                                        <GripVertical size={20} />
                                                     </div>
-                                                    <input
-                                                        type="range"
-                                                        min="0" max="10" step="0.5"
-                                                        value={inputs.commissionRate}
-                                                        onChange={(e) => updateInput('commissionRate', parseFloat(e.target.value))}
-                                                        className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                                                    />
+                                                    <h3 className="font-bold text-white text-xl tracking-tight">
+                                                        Fine Tune Calculation
+                                                    </h3>
                                                 </div>
 
-                                                <PremiumInput
-                                                    label="Repair Credits"
-                                                    prefix="$"
-                                                    value={inputs.repairCosts}
-                                                    onChange={(e) => updateInput('repairCosts', e.target.value)}
-                                                />
+                                                <div className="space-y-5">
+                                                    {/* Commission Slider */}
+                                                    <div>
+                                                        <div className="flex justify-between text-sm mb-3">
+                                                            <span className="text-slate-300 font-medium text-xs uppercase tracking-wide">Realtor Commission</span>
+                                                            <span className="text-emerald-400 font-bold">{inputs.commissionRate}% <span className="text-slate-500 font-normal">→ {formatCurrency(results?.breakdown.commission || 0)}</span></span>
+                                                        </div>
+                                                        <input
+                                                            type="range"
+                                                            min="0" max="8" step="0.5"
+                                                            value={inputs.commissionRate}
+                                                            onChange={(e) => updateInput('commissionRate', parseFloat(e.target.value))}
+                                                            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-colors"
+                                                        />
+                                                        <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                                                            <span>0%</span>
+                                                            <span>4%</span>
+                                                            <span>8%</span>
+                                                        </div>
+                                                    </div>
 
-                                                <PremiumInput
-                                                    label="Closing Cost Rate (%)"
-                                                    value={inputs.closingCostsRate}
-                                                    onChange={(e) => updateInput('closingCostsRate', e.target.value)}
-                                                />
+                                                    {/* Repairs Row - Wider Inputs */}
+                                                    <div className="bg-slate-800/40 rounded-lg p-3 flex items-center justify-between border border-slate-700/50">
+                                                        <span className="text-slate-300 text-sm font-medium">Repair Credits</span>
+                                                        <div className="w-40">
+                                                            <PremiumInput
+                                                                label=""
+                                                                prefix="$"
+                                                                value={inputs.repairCosts}
+                                                                onChange={(e) => updateInput('repairCosts', e.target.value)}
+                                                                className="h-10 text-right bg-slate-900 border-slate-700 font-mono"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Closing Costs Container */}
+                                                    <div className="bg-slate-900/80 rounded-2xl border border-slate-800 p-6 space-y-5 shadow-inner">
+                                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Closing Cost Details</h4>
+
+                                                        {/* Row: Title */}
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-slate-300 text-sm">Title & Escrow</span>
+                                                                <span className="text-[10px] text-emerald-500/80 flex items-center gap-1"><MapPin size={10} /> {inputs.zipCode || 'National'} Avg</span>
+                                                            </div>
+                                                            <div className="flex-1 max-w-[180px]">
+                                                                <PremiumInput
+                                                                    prefix="$"
+                                                                    value={inputs.titleFees}
+                                                                    onChange={(e) => updateInput('titleFees', e.target.value)}
+                                                                    className="h-9 text-right bg-slate-900/80 text-sm font-mono"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Row: Taxes */}
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-slate-300 text-sm">Prorated Taxes</span>
+                                                                <span className="text-[10px] text-slate-500">Calculated Estimate</span>
+                                                            </div>
+                                                            <div className="flex-1 max-w-[180px]">
+                                                                <PremiumInput
+                                                                    prefix="$"
+                                                                    value={inputs.proratedTaxes}
+                                                                    onChange={(e) => updateInput('proratedTaxes', e.target.value)}
+                                                                    className="h-9 text-right bg-slate-900/80 text-sm font-mono"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Row: Transfer Tax */}
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <span className="text-slate-300 text-sm">Transfer Tax</span>
+                                                            <div className="flex-1 max-w-[180px]">
+                                                                <PremiumInput
+                                                                    prefix="$"
+                                                                    value={inputs.transferTax}
+                                                                    onChange={(e) => updateInput('transferTax', e.target.value)}
+                                                                    className="h-9 text-right bg-slate-900/80 text-sm font-mono"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Row: Misc / Warranty */}
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <span className="text-slate-300 text-sm">Home Warranty / Misc</span>
+                                                            <div className="flex-1 max-w-[180px]">
+                                                                <PremiumInput
+                                                                    prefix="$"
+                                                                    value={inputs.miscFees}
+                                                                    onChange={(e) => updateInput('miscFees', e.target.value)}
+                                                                    className="h-9 text-right bg-slate-900/80 text-sm font-mono"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Single Line Scenarios */}
+                                                    <div className="grid grid-cols-3 gap-0 bg-slate-950/50 rounded-lg overflow-hidden border border-slate-800/50 divide-x divide-slate-800">
+                                                        <div className="p-3 text-center hover:bg-emerald-950/20 transition-colors">
+                                                            <div className="text-[10px] text-emerald-400 font-bold uppercase mb-1">Best Case</div>
+                                                            <div className="text-sm font-bold text-white">${((results?.netProceeds || 0) * 1.05).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                                                        </div>
+                                                        <div className="p-3 text-center bg-slate-800/50">
+                                                            <div className="text-[10px] text-blue-400 font-bold uppercase mb-1">Expected</div>
+                                                            <div className="text-sm font-bold text-white">${(results?.netProceeds || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                                                        </div>
+                                                        <div className="p-3 text-center hover:bg-red-950/10 transition-colors">
+                                                            <div className="text-[10px] text-red-400 font-bold uppercase mb-1">Conservative</div>
+                                                            <div className="text-sm font-bold text-slate-300">${((results?.netProceeds || 0) * 0.95).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div className="flex flex-col gap-3">
-                                            <PremiumButton className="w-full" variant="secondary" onClick={() => results && generateNetSheetPDF(inputs, results, email || "My Estimate")}>
-                                                <Download className="w-4 h-4 mr-2" /> Download PDF
-                                            </PremiumButton>
-
-                                            {isPro && (
-                                                <PremiumButton className="w-full bg-green-700 hover:bg-green-600 border-green-600 text-white" variant="outline" onClick={() => results && generateExcelTool(inputs, results)}>
-                                                    <Download className="w-4 h-4 mr-2" /> Download Excel Tool
+                                            <div className="flex flex-col gap-3">
+                                                <PremiumButton className="w-full" variant="secondary" onClick={() => results && generateNetSheetPDF(inputs, results, email || "My Estimate")}>
+                                                    <Download className="w-4 h-4 mr-2" /> Download PDF
                                                 </PremiumButton>
-                                            )}
+
+                                                {isPro && (
+                                                    <PremiumButton className="w-full bg-green-700 hover:bg-green-600 border-green-600 text-white" variant="outline" onClick={() => results && generateExcelTool(inputs, results)}>
+                                                        <Download className="w-4 h-4 mr-2" /> Download Excel Tool
+                                                    </PremiumButton>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
