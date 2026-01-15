@@ -46,7 +46,7 @@ create policy "Enable insert for anon users" on seller_sheets for insert with ch
 -- 4. Site Traffic Counter (Social Proof)
 create table if not exists site_traffic (
   id int primary key generated always as identity,
-  count int default 500, -- Seed with 500
+  count int default 100, -- Seed with 100
   updated_at timestamptz default now()
 );
 
@@ -58,4 +58,4 @@ create policy "Allow anon update traffic" on site_traffic for update using (true
 create policy "Allow anon select traffic" on site_traffic for select using (true);
 
 -- Initial Seed (RUN THIS ONCE IN DASHBOARD SQL EDITOR)
--- insert into site_traffic (count) values (500);
+-- insert into site_traffic (count) values (100);

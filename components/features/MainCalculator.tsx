@@ -38,7 +38,7 @@ function CalculatorContent() {
     const [showRecoveryModal, setShowRecoveryModal] = useState(false); // New Recovery Modal
     const [isPaid, setIsPaid] = useState(false); // Tracks standard unlock ($4.99)
     const [isPro, setIsPro] = useState(false); // Tracks Pro Bundle ($9.99)
-    const [familiesHelped, setFamiliesHelped] = useState(500); // Social Proof Counter
+    const [familiesHelped, setFamiliesHelped] = useState(100); // Social Proof Counter
 
     // Derived State
     const isAdvancedMode = isPaid || isPro;

@@ -22,7 +22,7 @@ export async function POST() {
             // Maybe empty table? Insert seed.
             const { data: newRow } = await supabase
                 .from('site_traffic')
-                .insert({ count: 501, id: 1 }) // seeded
+                .insert({ count: 101, id: 1 }) // seeded
                 .select()
                 .single();
             row = newRow;
@@ -31,7 +31,7 @@ export async function POST() {
         if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
             console.error("Counter Valid Check Error:", error);
             // Fail gracefully, return estimated
-            return NextResponse.json({ count: 500 });
+            return NextResponse.json({ count: 100 });
         }
 
         // 2. Increment
@@ -40,7 +40,7 @@ export async function POST() {
         // We'll just read + write + 1. 
         // Race conditions might miss a few hits, totally fine for "social proof".
 
-        const currentCount = row ? row.count : 500;
+        const currentCount = row ? row.count : 100;
         const newCount = currentCount + 1;
 
         await supabase
@@ -52,7 +52,7 @@ export async function POST() {
 
     } catch (e) {
         console.error("Visit API Error:", e);
-        return NextResponse.json({ count: 500 }); // Fallback
+        return NextResponse.json({ count: 100 }); // Fallback
     }
 }
 
@@ -64,5 +64,5 @@ export async function GET() {
         .eq('id', 1)
         .single();
 
-    return NextResponse.json({ count: row?.count || 500 });
+    return NextResponse.json({ count: row?.count || 100 });
 }
