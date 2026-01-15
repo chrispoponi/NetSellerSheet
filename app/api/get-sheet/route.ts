@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     try {
         const { data, error } = await supabase
             .from('seller_sheets')
-            .select('input_data, is_paid, email')
+            .select('input_data, is_paid, email, mode')
             .eq('id', id)
             .single();
 
@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             inputs: data.input_data,
             is_paid: data.is_paid,
+            mode: data.mode,
             email: data.email
         });
 
