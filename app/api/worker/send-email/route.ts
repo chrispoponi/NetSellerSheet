@@ -69,7 +69,7 @@ async function handler(req: Request) {
                     <p>It’s designed for sellers who want numbers they can actually plan around — not rough guesses.</p>
 
                     <div style="text-align: center; margin: 32px 0;">
-                        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://netsellersheet.com'}" style="background-color: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://netsellersheet.com'}?id=${sheetId}" style="background-color: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                             👉 Refine My Net Sheet
                         </a>
                     </div>

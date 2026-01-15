@@ -191,6 +191,16 @@ function CalculatorContent() {
         }));
     };
 
+    // Handler for Landing Page Excel Download
+    const handleDownloadExcelTemplate = () => {
+        if (!isPro) {
+            setShowRefineModal(true);
+            return;
+        }
+        const currentRes = calculateNetProceeds(inputs);
+        generateExcelTool(inputs, currentRes);
+    };
+
     return (
         <div className="w-full max-w-4xl mx-auto px-4 pb-20">
             {/* Navbar */}
@@ -288,6 +298,17 @@ function CalculatorContent() {
                             <p className="text-xs text-center text-slate-500">
                                 Trusted by 500+ Local Families • No Spam Promise
                             </p>
+                        </div>
+
+                        {/* Offline Excel Option */}
+                        <div className="text-center space-y-2">
+                            <p className="text-sm text-slate-500">Prefer to work offline?</p>
+                            <button
+                                onClick={handleDownloadExcelTemplate}
+                                className="text-emerald-400 hover:text-emerald-300 text-sm font-medium flex items-center gap-2 mx-auto transition-colors"
+                            >
+                                <Download size={16} /> Download Master Excel Calculator
+                            </button>
                         </div>
                     </motion.div>
                 )}
@@ -740,13 +761,28 @@ function CalculatorContent() {
                                 />
                                 <PremiumButton
                                     className="w-full"
-                                    onClick={() => {
+                                    onClick={async () => {
                                         if (!recoveryEmail.includes('@')) {
                                             alert("Please enter a valid email.");
                                             return;
                                         }
-                                        alert(`Magic Link sent to ${recoveryEmail}! Check your inbox.`); // Placeholder
-                                        setShowRecoveryModal(false);
+
+                                        try {
+                                            const res = await fetch('/api/recover-session', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ email: recoveryEmail })
+                                            });
+
+                                            if (res.ok) {
+                                                alert(`Magic Link sent to ${recoveryEmail}! Check your inbox (and spam).`);
+                                                setShowRecoveryModal(false);
+                                            } else {
+                                                alert("We couldn't find a recent calculation for that email.");
+                                            }
+                                        } catch (e) {
+                                            alert("Something went wrong. Please try again.");
+                                        }
                                     }}
                                 >
                                     Send Magic Link
