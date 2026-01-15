@@ -38,6 +38,7 @@ function CalculatorContent() {
     const [showRecoveryModal, setShowRecoveryModal] = useState(false); // New Recovery Modal
     const [isPaid, setIsPaid] = useState(false); // Tracks standard unlock ($4.99)
     const [isPro, setIsPro] = useState(false); // Tracks Pro Bundle ($9.99)
+    const [familiesHelped, setFamiliesHelped] = useState(500); // Social Proof Counter
 
     // Derived State
     const isAdvancedMode = isPaid || isPro;
@@ -60,47 +61,49 @@ function CalculatorContent() {
         }
     }, [inputs, step]);
 
-    // CHECK FOR MAGIC LINK REHYDRATION
+    // Initial Load & Counter
     useEffect(() => {
+        // Load Sheet if ID present
         const loadSheet = async () => {
-            if (!urlSheetId) return;
-
-            console.log("Found Sheet ID, recovering session:", urlSheetId);
-
-            try {
-                const response = await fetch(`/api/get-sheet?id=${urlSheetId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.inputs) {
-                        setInputs(data.inputs);
-                        setIsPaid(data.is_paid || false);
-
-                        // Handle Pro Mode vs Advanced
-                        if (data.mode === 'pro_bundle') {
-                            setIsPro(true);
+            if (urlSheetId) {
+                console.log("Found Sheet ID, recovering session:", urlSheetId);
+                try {
+                    const response = await fetch(`/api/get-sheet?id=${urlSheetId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data && data.inputs) {
+                            setInputs(data.inputs);
+                            setIsPaid(data.is_paid || false);
+                            if (data.mode === 'pro_bundle') setIsPro(true);
+                            if (data.is_paid) setMode('advanced');
+                            setStep('results');
+                            setEmail(data.email || "");
+                            setSheetId(urlSheetId);
+                            const freshResults = calculateNetProceeds(data.inputs);
+                            setResults(freshResults);
                         }
-
-                        // If paid, auto set to Advanced
-                        if (data.is_paid) setMode('advanced');
-
-                        // Set Step to Results
-                        setStep('results');
-                        setEmail(data.email || "");
-
-                        // Also set the sheetId state so they can continue to update it
-                        setSheetId(urlSheetId);
-
-                        // Calculate fresh results
-                        const freshResults = calculateNetProceeds(data.inputs);
-                        setResults(freshResults);
                     }
+                } catch (e) {
+                    console.error("Failed to load sheet", e);
                 }
-            } catch (e) {
-                console.error("Failed to load sheet", e);
             }
         };
-
         loadSheet();
+
+        // Increment/Fetch Counter (Only on landing mount or roughly once)
+        const updateCounter = async () => {
+            // Avoid double counting strictly in React strict mode? It's fine for social proof.
+            try {
+                const res = await fetch('/api/visit', { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.count) setFamiliesHelped(data.count);
+                }
+            } catch (e) { console.error("Counter error", e); }
+        };
+        // Run only once on mount
+        updateCounter();
+
     }, [urlSheetId]);
 
 
@@ -296,7 +299,7 @@ function CalculatorContent() {
                             </PremiumButton>
 
                             <p className="text-xs text-center text-slate-500">
-                                Trusted by 500+ Local Families • No Spam Promise
+                                Trusted by <span className="font-bold text-emerald-500">{familiesHelped.toLocaleString()}+</span> Local Families • No Spam Promise
                             </p>
                         </div>
 

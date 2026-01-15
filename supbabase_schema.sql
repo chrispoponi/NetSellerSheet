@@ -42,3 +42,20 @@ alter table seller_sheets enable row level security;
 
 create policy "Enable insert for anon users" on leads for insert with check (true);
 create policy "Enable insert for anon users" on seller_sheets for insert with check (true);
+
+-- 4. Site Traffic Counter (Social Proof)
+create table if not exists site_traffic (
+  id int primary key generated always as identity,
+  count int default 500, -- Seed with 500
+  updated_at timestamptz default now()
+);
+
+-- Enable RLS
+alter table site_traffic enable row level security;
+
+-- Policy: Allow Anon to UPDATE (increment) row 1
+create policy "Allow anon update traffic" on site_traffic for update using (true) with check (true);
+create policy "Allow anon select traffic" on site_traffic for select using (true);
+
+-- Initial Seed (RUN THIS ONCE IN DASHBOARD SQL EDITOR)
+-- insert into site_traffic (count) values (500);
