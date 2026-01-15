@@ -44,36 +44,49 @@ export async function POST(req: Request) {
             // We don't block on this
         }
 
-        // 3. Trigger Email Job (Async via QStash)
+        // 3. Trigger Email Job
+        // Use a proper absolute URL. In production VERCEL_URL is set, but no protocol.
+        const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+        const host = process.env.VERCEL_URL || 'localhost:3000';
+        const endpoint = `${protocol}://${host}/api/worker/send-email`;
+
+        const payload = { email, sheetId: sheetData.id, results, inputs };
+
         if (process.env.QSTASH_URL && process.env.QSTASH_TOKEN) {
             try {
-                // Use a proper absolute URL. In production VERCEL_URL is set, but no protocol.
-                const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-                const host = process.env.VERCEL_URL || 'localhost:3000';
-                const endpoint = `${protocol}://${host}/api/worker/send-email`;
-
                 console.log("Triggering QStash to:", endpoint);
-
                 const qstashRes = await fetch(`${process.env.QSTASH_URL}/v2/publish/${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${process.env.QSTASH_TOKEN}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email, sheetId: sheetData.id, results, inputs })
+                    body: JSON.stringify(payload)
                 });
 
                 if (!qstashRes.ok) {
-                    console.error("QStash API Error:", await qstashRes.text());
+                    console.error("QStash API Error, attempting direct fallback...", await qstashRes.text());
+                    throw new Error("QStash failed");
                 } else {
                     console.log("QStash Trigger Success:", qstashRes.status);
                 }
             } catch (qError) {
-                console.error("QStash trigger failed:", qError);
-                // Don't fail the request, just log it
+                // Fallback to direct call
+                console.log("Fallback: Sending directly via Internal Fetch");
+                fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(e => console.error("Direct fallback failed", e));
             }
         } else {
-            console.warn("QStash vars missing. Email job skipped.");
+            console.log("QStash vars missing. Sending directly via Internal Fetch.");
+            // Direct Call (Fire and Forget)
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(e => console.error("Direct send failed", e));
         }
 
         return NextResponse.json({ success: true, sheetId: sheetData.id });

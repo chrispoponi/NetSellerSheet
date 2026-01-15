@@ -51,18 +51,13 @@ export async function POST(req: Request) {
                 body: JSON.stringify(payload)
             });
         } else {
-            console.warn("No QStash, attempting direct call (might fail if serverless duration issue)");
-            // Fallback: direct invoke (only works if in same runtime/context, which isn't guaranteed here)
-            // Instead, we just assume Dev mode and log it.
-            if (process.env.NODE_ENV === 'development') {
-                console.log("Dev Mode Recovery: Email would be sent here.");
-                // We can try to fetch the endpoint directly
-                await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            }
+            console.warn("No QStash, requesting email directly.");
+            // Fallback: direct invoke
+            await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(e => console.error("Direct recovery failed", e));
         }
 
         return NextResponse.json({ success: true, message: "Magic link sent" });
