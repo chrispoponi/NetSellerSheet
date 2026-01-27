@@ -41,7 +41,7 @@ export async function POST(req: Request) {
             inputs: sheet.input_data
         };
 
-        if (process.env.QSTASH_URL && process.env.QSTASH_TOKEN) {
+        if (process.env.QSTASH_URL && process.env.QSTASH_TOKEN && process.env.NODE_ENV !== 'development') {
             await fetch(`${process.env.QSTASH_URL}/v2/publish/${endpoint}`, {
                 method: 'POST',
                 headers: {

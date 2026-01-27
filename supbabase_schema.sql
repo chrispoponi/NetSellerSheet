@@ -1,8 +1,9 @@
 -- 1. Leads Table (If not already existing from your other apps)
 create table if not exists leads (
   id uuid default gen_random_uuid() primary key,
-  email text not null,
+  email text not null unique, -- Added unique constraint for upsert
   source text default 'netsellersheet',
+  last_calculated_at timestamptz default now(), -- Added to match code
   created_at timestamptz default now()
 );
 
@@ -27,6 +28,7 @@ create table if not exists seller_sheets (
   
   -- Full JSON dump of inputs (for advanced re-hydration)
   input_data jsonb,
+  results_data jsonb, -- Added to match code
   
   created_at timestamptz default now()
 );

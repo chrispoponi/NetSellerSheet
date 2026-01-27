@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
         const payload = { email, sheetId: sheetData.id, results, inputs };
 
-        if (process.env.QSTASH_URL && process.env.QSTASH_TOKEN) {
+        if (process.env.QSTASH_URL && process.env.QSTASH_TOKEN && process.env.NODE_ENV !== 'development') {
             try {
                 console.log("Triggering QStash to:", endpoint);
                 const qstashRes = await fetch(`${process.env.QSTASH_URL}/v2/publish/${endpoint}`, {
@@ -71,18 +71,18 @@ export async function POST(req: Request) {
                     console.log("QStash Trigger Success:", qstashRes.status);
                 }
             } catch (qError) {
-                // Fallback to direct call
+                // Fallback to direct call - MUST AWAIT to prevent Vercel from freezing the lambda
                 console.log("Fallback: Sending directly via Internal Fetch");
-                fetch(endpoint, {
+                await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 }).catch(e => console.error("Direct fallback failed", e));
             }
         } else {
-            console.log("QStash vars missing. Sending directly via Internal Fetch.");
-            // Direct Call (Fire and Forget)
-            fetch(endpoint, {
+            console.log("QStash skipped (Dev or Missing Vars). Sending directly via Internal Fetch.");
+            // Direct Call - MUST AWAIT
+            await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
