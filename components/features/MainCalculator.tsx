@@ -223,6 +223,9 @@ function CalculatorContent() {
                     <div className="flex items-center gap-6">
                         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
                             <button onClick={scrollToHowItWorks} className="hover:text-white transition-colors">How it Works</button>
+                            <a href="/resources/mortgage-relevance" className="hover:text-white transition-colors flex items-center gap-1">
+                                <span className="text-emerald-400">🏠</span> Next Home Calculator
+                            </a>
                             <button onClick={() => setShowRefineModal(true)} className="hover:text-white transition-colors">Pricing</button>
                         </nav>
                         <button
