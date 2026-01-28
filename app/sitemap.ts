@@ -19,5 +19,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'weekly',
             priority: 0.9,
         },
+        // Direct Product Purchase - Seller's Toolkit
+        {
+            url: `${baseUrl}/buy/toolkit`,
+            lastModified: currentDate,
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
     ]
 }

@@ -197,7 +197,8 @@ function CalculatorContent() {
     // Handler for Landing Page Excel Download
     const handleDownloadExcelTemplate = () => {
         if (!isPro) {
-            setShowRefineModal(true);
+            // Redirect to direct purchase page
+            window.location.href = '/buy/toolkit';
             return;
         }
         const currentRes = calculateNetProceeds(inputs);
