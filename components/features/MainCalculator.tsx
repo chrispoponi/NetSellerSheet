@@ -242,10 +242,10 @@ function CalculatorContent() {
             {/* Header / Hero Section */}
             <div className="text-center px-4 mb-4 mt-8">
                 <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 tracking-tight">
-                    Net Seller Sheet
+                    Selling Home? Calculate Your Net Proceeds
                 </h1>
                 <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-                    <span className="text-emerald-400 font-medium">Free Home Seller Tool.</span> Calculate exactly what you walk away with.
+                    <span className="text-emerald-400 font-medium">Free Net Seller Sheet Tool.</span> See exactly what you walk away with when selling home.
                 </p>
             </div>
 
@@ -258,9 +258,9 @@ function CalculatorContent() {
                         className="flex flex-col items-center text-center space-y-8"
                     >
                         <div className="space-y-4">
-                            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
-                                What's your home <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">actually</span> worth?
-                            </h1>
+                            <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
+                                Selling Home? See What You <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Actually</span> Keep
+                            </h2>
                             <p className="text-xl text-slate-400 max-w-xl mx-auto">
                                 Don't guess. See your real net proceeds after fees, commissions, and closing costs.
                             </p>

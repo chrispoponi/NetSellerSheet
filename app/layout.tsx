@@ -11,10 +11,10 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL('https://netsellersheet.com'),
   title: {
-    default: 'Real Estate Proceeds Calculator for Sellers | Net Seller Sheet',
+    default: 'Selling Home? Net Proceeds Calculator | Net Seller Sheet',
     template: '%s | Net Seller Sheet'
   },
-  description: 'The #1 Free Home Seller Tool. Calculate exactly what you walk away with when selling your home. Accurate estimates for commissions, title fees, closing costs, and mortgage payoffs.',
+  description: 'Selling home? Calculate your exact net proceeds. Free tool shows what you keep after commissions, closing costs & mortgage payoff.',
   keywords: [
     // Core Brand Keywords
     "Net Seller Sheet",

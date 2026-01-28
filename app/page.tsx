@@ -42,7 +42,7 @@ export default function Home() {
         <section id="how-it-works-section" className="max-w-4xl mx-auto px-6 py-16 space-y-8 text-slate-400 text-sm">
           <h2 className="text-xl font-bold text-white">Why use a Seller Net Sheet?</h2>
           <p>
-            A <strong>Seller Net Sheet</strong> (or Net Proceeds Calculator) is the most critical tool for any home seller. unlike a Zestimate which only shows gross value, our <em>Net Seller Sheet</em> calculates your true "Walk Away" number after deducting real estate agent commissions, title insurance, escrow fees, and prorated property taxes.
+            A <strong>Seller Net Sheet</strong> (or Net Proceeds Calculator) is the most critical tool when selling home. Unlike a Zestimate which only shows gross value, our <em>Net Seller Sheet</em> calculates your true "Walk Away" number after deducting real estate agent commissions, title insurance, escrow fees, and prorated property taxes. Whether you're selling home for the first time or a seasoned seller, knowing your exact proceeds is essential.
           </p>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
