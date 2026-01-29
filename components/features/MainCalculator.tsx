@@ -240,15 +240,7 @@ function CalculatorContent() {
                 </div>
             </motion.header>
 
-            {/* Header / Hero Section */}
-            <div className="text-center px-4 mb-4 mt-8">
-                <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 tracking-tight">
-                    Selling Home? Calculate Your Net Proceeds
-                </h1>
-                <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-                    <span className="text-emerald-400 font-medium">Free Net Seller Sheet Tool.</span> See exactly what you walk away with when selling home.
-                </p>
-            </div>
+
 
             <AnimatePresence mode="wait">
                 {step === 'landing' && (
@@ -799,6 +791,16 @@ function CalculatorContent() {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* SEO Footer Section */}
+            <div className="text-center mt-20 pt-12 border-t border-slate-800/50">
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-500 mb-3 tracking-tight">
+                    Selling Home? Calculate Your Net Proceeds
+                </h1>
+                <p className="text-slate-500 text-sm max-w-xl mx-auto">
+                    <span className="text-emerald-600 font-medium">Free Net Seller Sheet Tool.</span> See exactly what you walk away with when selling home.
+                </p>
+            </div>
         </div>
     );
 }
